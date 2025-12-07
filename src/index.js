@@ -76,7 +76,7 @@ async function processUploadedFiles(formData) {
   for (const file of files) {
     // Check if it's a ZIP file
     if (file.name.endsWith('.zip') || file.type === 'application/zip') {
-      const extractedFiles = await extractZipFiles(file.data);
+      const extractedFiles = extractZipFiles(file.data);
       
       for (const [filename, data] of extractedFiles) {
         const category = categorizeWarpFile(filename);

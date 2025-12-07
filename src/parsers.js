@@ -1,25 +1,24 @@
-import { unzip } from 'fflate';
+import { unzipSync } from 'fflate';
 
 /**
  * Extract files from a ZIP archive
  * @param {ArrayBuffer} zipData - ZIP file data
- * @returns {Promise<Map<string, Uint8Array>>} - Map of filename to file content
+ * @returns {Map<string, Uint8Array>} - Map of filename to file content
  */
-export async function extractZipFiles(zipData) {
-	return new Promise((resolve, reject) => {
+export function extractZipFiles(zipData) {
+	try {
 		const uint8Data = new Uint8Array(zipData);
-		unzip(uint8Data, (err, files) => {
-			if (err) {
-				reject(new Error(`Failed to extract ZIP: ${err.message}`));
-				return;
-			}
-			const fileMap = new Map();
-			for (const [filename, data] of Object.entries(files)) {
-				fileMap.set(filename, data);
-			}
-			resolve(fileMap);
-		});
-	});
+		// Use unzipSync instead of unzip to avoid Web Worker dependency
+		// which is not available in Cloudflare Workers runtime
+		const files = unzipSync(uint8Data);
+		const fileMap = new Map();
+		for (const [filename, data] of Object.entries(files)) {
+			fileMap.set(filename, data);
+		}
+		return fileMap;
+	} catch (err) {
+		throw new Error(`Failed to extract ZIP: ${err.message}`);
+	}
 }
 
 /**

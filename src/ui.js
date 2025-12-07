@@ -17,58 +17,78 @@ export const UI_HTML = `<!DOCTYPE html>
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f9f9f9;
             min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            gap: 15px;
+        }
+        
+        .logo {
+            font-size: 32px;
+        }
+        
+        .header h1 {
+            color: #1f1f1f;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
         }
         
         .container {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             padding: 40px;
-            max-width: 900px;
+            max-width: 1200px;
+            margin: 0 auto;
             width: 100%;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
         }
         
         .tabs {
             display: flex;
-            gap: 10px;
+            gap: 0;
             margin-bottom: 20px;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 1px solid #e5e5e5;
         }
         
         .tab {
-            padding: 10px 20px;
+            padding: 12px 24px;
             background: none;
             border: none;
             cursor: pointer;
             color: #666;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 500;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+            top: 1px;
+        }
+        
+        .tab:hover {
+            color: #f38020;
         }
         
         .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
+            color: #f38020;
+            border-bottom-color: #f38020;
         }
         
         .tab-content {
@@ -80,23 +100,25 @@ export const UI_HTML = `<!DOCTYPE html>
         }
         
         .upload-area {
-            border: 2px dashed #667eea;
+            border: 2px dashed #d4d4d4;
             border-radius: 8px;
-            padding: 40px;
+            padding: 50px 40px;
             text-align: center;
             margin-bottom: 20px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            background: #fafafa;
         }
         
         .upload-area:hover {
-            border-color: #764ba2;
-            background: #f8f9ff;
+            border-color: #f38020;
+            background: #fff;
         }
         
         .upload-area.dragover {
-            border-color: #764ba2;
-            background: #f0f2ff;
+            border-color: #f38020;
+            background: #fff5f0;
+            border-style: solid;
         }
         
         input[type="file"] {
@@ -114,32 +136,34 @@ export const UI_HTML = `<!DOCTYPE html>
         }
         
         button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f38020;
             color: white;
             border: none;
-            padding: 14px 28px;
-            border-radius: 6px;
-            font-size: 16px;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            transition: background 0.2s ease;
             width: 100%;
         }
         
         button:hover:not(:disabled) {
-            transform: translateY(-2px);
+            background: #e06d0e;
         }
         
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            background: #ccc;
         }
         
         .selected-files {
             margin: 20px 0;
-            padding: 15px;
-            background: #f8f9ff;
-            border-radius: 6px;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 8px;
+            border: 1px solid #e5e5e5;
         }
         
         .file-item {
@@ -176,7 +200,7 @@ export const UI_HTML = `<!DOCTYPE html>
         
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid #f38020;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -191,9 +215,10 @@ export const UI_HTML = `<!DOCTYPE html>
         
         .results {
             margin-top: 30px;
-            padding: 20px;
-            background: #f8f9ff;
+            padding: 25px;
+            background: #fafafa;
             border-radius: 8px;
+            border: 1px solid #e5e5e5;
             display: none;
         }
         
@@ -202,90 +227,99 @@ export const UI_HTML = `<!DOCTYPE html>
         }
         
         .result-header {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 600;
-            color: #333;
+            color: #1f1f1f;
             margin-bottom: 15px;
         }
         
         .health-status {
             display: inline-block;
-            padding: 6px 12px;
+            padding: 6px 16px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .health-status.healthy {
-            background: #d4edda;
-            color: #155724;
+            background: #d1f5d3;
+            color: #0f7a1c;
         }
         
         .health-status.degraded {
-            background: #fff3cd;
-            color: #856404;
+            background: #ffe8b8;
+            color: #8a5700;
         }
         
         .health-status.critical {
-            background: #f8d7da;
-            color: #721c24;
+            background: #ffd4d4;
+            color: #c41e3a;
         }
         
         .issue {
             background: white;
-            padding: 15px;
+            padding: 20px;
             margin-bottom: 15px;
             border-radius: 6px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #0051c3;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         
         .issue.critical {
-            border-left-color: #dc3545;
+            border-left-color: #c41e3a;
         }
         
         .issue.warning {
-            border-left-color: #ffc107;
+            border-left-color: #f38020;
         }
         
         .issue-title {
             font-weight: 600;
-            margin-bottom: 5px;
-            color: #333;
+            margin-bottom: 8px;
+            color: #1f1f1f;
+            font-size: 16px;
         }
         
         .issue-description {
             font-size: 14px;
             color: #666;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            line-height: 1.6;
         }
         
         .issue-remediation {
-            font-size: 13px;
-            color: #555;
-            background: #f0f2ff;
-            padding: 10px;
+            font-size: 14px;
+            color: #1f1f1f;
+            background: #fafafa;
+            padding: 12px 15px;
             border-radius: 4px;
+            border-left: 3px solid #f38020;
         }
         
         pre {
-            background: #2d2d2d;
+            background: #1f1f1f;
             color: #f8f8f2;
-            padding: 15px;
+            padding: 16px;
             border-radius: 6px;
             overflow-x: auto;
-            font-size: 12px;
+            font-size: 13px;
             margin-top: 15px;
             max-height: 400px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            line-height: 1.5;
         }
         
         .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
+            background: #ffd4d4;
+            color: #c41e3a;
+            padding: 16px 20px;
             border-radius: 6px;
             margin-top: 15px;
             display: none;
+            border-left: 4px solid #c41e3a;
         }
         
         .error.active {
@@ -293,23 +327,26 @@ export const UI_HTML = `<!DOCTYPE html>
         }
         
         .api-info {
-            background: #f8f9ff;
-            padding: 20px;
+            background: #fafafa;
+            padding: 24px;
             border-radius: 8px;
             margin-bottom: 20px;
+            border: 1px solid #e5e5e5;
         }
         
         .api-info h3 {
-            color: #667eea;
-            margin-bottom: 10px;
+            color: #1f1f1f;
+            margin-bottom: 12px;
+            font-size: 18px;
         }
         
         .api-info code {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 2px 6px;
+            background: #1f1f1f;
+            color: #f38020;
+            padding: 3px 8px;
             border-radius: 4px;
             font-size: 13px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         }
         
         .api-info pre {
@@ -318,20 +355,28 @@ export const UI_HTML = `<!DOCTYPE html>
         
         .endpoint-badge {
             display: inline-block;
-            background: #667eea;
+            background: #f38020;
             color: white;
-            padding: 4px 12px;
+            padding: 6px 14px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 13px;
             margin-bottom: 10px;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <div class="header-content">
+            <span class="logo">☁️</span>
+            <div>
+                <h1>WARP Diagnostics Analyzer</h1>
+                <p style="color: #666; font-size: 14px; margin-top: 4px;">AI-powered analysis using Cloudflare Workers AI</p>
+            </div>
+        </div>
+    </div>
+    
     <div class="container">
-        <h1>🔍 WARP Diagnostics Analyzer</h1>
-        <p class="subtitle">AI-powered analysis using Llama 4 Scout 17B</p>
-        
         <div class="tabs">
             <button class="tab active" data-tab="upload">Upload & Analyze</button>
             <button class="tab" data-tab="api">API Documentation</button>
