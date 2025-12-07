@@ -30,6 +30,10 @@ Common WARP issues to look for:
 - Firewall blocking
 - Network interface conflicts
 - Configuration mismatches
+- Packet-level issues (retransmissions, drops, protocol errors)
+- Network protocol anomalies (TCP resets, ICMP errors, ARP issues)
+
+When analyzing PCAP packet data, include specific packet numbers, timestamps, IP addresses, and protocols in your evidence keywords to help users locate the exact packets related to issues.
 
 Respond with structured JSON output.`;
 

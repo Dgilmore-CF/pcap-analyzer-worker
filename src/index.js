@@ -3,7 +3,7 @@
  * Uses Workers AI (Llama 4 Scout) to analyze WARP diag logs and packet captures
  */
 
-import { extractZipFiles, parseTextFile, parsePcapBasic, categorizeWarpFile, extractKeyInfo } from './parsers.js';
+import { extractZipFiles, parseTextFile, parsePcapBasic, categorizeWarpFile, extractKeyInfo, extractPcapPacketSummaries } from './parsers.js';
 import { analyzeWarpDiagnostics, analyzePcapWithAI } from './ai-analyzer.js';
 import { UI_HTML } from './ui.js';
 
@@ -92,9 +92,19 @@ async function processUploadedFiles(formData) {
         const category = categorizeWarpFile(filename);
         
         if (isPcapFile(filename)) {
-          // Parse PCAP/PCAPNG file
+          // Parse PCAP/PCAPNG file - get both metadata and packet summaries
           const pcapMetadata = parsePcapBasic(data);
           allPcapMetadata.push({ filename, ...pcapMetadata });
+          
+          // Also extract packet summaries as searchable text for evidence
+          const packetSummary = extractPcapPacketSummaries(data, filename);
+          allLogFiles.push({
+            filename,
+            content: packetSummary,
+            category: 'pcap',
+            priority: 'high', // PCAP files are high priority for network analysis
+            keyInfo: { packetCount: pcapMetadata.packetCount, format: pcapMetadata.format },
+          });
         } else {
           // Parse text file
           try {
@@ -114,8 +124,19 @@ async function processUploadedFiles(formData) {
       }
     } else if (isPcapFile(file.name)) {
       // Individual PCAP/PCAPNG file
-      const pcapMetadata = parsePcapBasic(new Uint8Array(file.data));
+      const pcapData = new Uint8Array(file.data);
+      const pcapMetadata = parsePcapBasic(pcapData);
       allPcapMetadata.push({ filename: file.name, ...pcapMetadata });
+      
+      // Extract packet summaries as searchable text for evidence
+      const packetSummary = extractPcapPacketSummaries(pcapData, file.name);
+      allLogFiles.push({
+        filename: file.name,
+        content: packetSummary,
+        category: 'pcap',
+        priority: 'high',
+        keyInfo: { packetCount: pcapMetadata.packetCount, format: pcapMetadata.format },
+      });
     } else {
       // Individual text file
       try {

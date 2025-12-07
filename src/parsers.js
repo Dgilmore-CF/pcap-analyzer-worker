@@ -85,6 +85,108 @@ export function parsePcapBasic(data) {
 }
 
 /**
+ * Extract packet summaries from PCAP/PCAPNG as text entries
+ * @param {Uint8Array} data - PCAP/PCAPNG file data
+ * @param {string} filename - Original filename
+ * @returns {string} - Text summary of packets for analysis
+ */
+export function extractPcapPacketSummaries(data, filename) {
+	const metadata = parsePcapBasic(data);
+	
+	if (metadata.error) {
+		return `PCAP file: ${filename}\nError: ${metadata.error}`;
+	}
+
+	const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+	const magicNumber = view.getUint32(0, true);
+	const isLittleEndian = magicNumber === 0xa1b2c3d4;
+	const isPcapNg = magicNumber === 0x0a0d0d0a;
+	
+	if (isPcapNg) {
+		// PCAPNG format - simplified summary
+		return `PCAPNG file: ${filename}\n` +
+			`Format: ${metadata.format}\n` +
+			`Total Packets: ${metadata.packetCount}\n` +
+			`File Size: ${metadata.fileSize} bytes\n` +
+			`Network Type: ${metadata.network}\n` +
+			`Snapshot Length: ${metadata.snaplen} bytes\n\n` +
+			`Note: Detailed packet inspection available in full PCAP analysis tools.`;
+	}
+
+	// Parse packet headers for PCAP format
+	let summaryLines = [];
+	summaryLines.push(`PCAP file: ${filename}`);
+	summaryLines.push(`Format: ${metadata.format} v${metadata.version}`);
+	summaryLines.push(`Total Packets: ${metadata.packetCount}`);
+	summaryLines.push(`Network Type: ${metadata.network}`);
+	summaryLines.push(`\nPacket Summary (first 20 packets):`);
+	
+	let offset = 24; // Skip global header
+	let packetNum = 0;
+	const maxPackets = 20; // Limit to first 20 packets for analysis
+	
+	while (offset + 16 <= data.length && packetNum < maxPackets) {
+		try {
+			const tsSec = view.getUint32(offset, isLittleEndian);
+			const tsUsec = view.getUint32(offset + 4, isLittleEndian);
+			const capturedLength = view.getUint32(offset + 8, isLittleEndian);
+			const originalLength = view.getUint32(offset + 12, isLittleEndian);
+			
+			// Convert timestamp to readable format
+			const timestamp = new Date(tsSec * 1000 + tsUsec / 1000);
+			const timeStr = timestamp.toISOString();
+			
+			// Basic packet info
+			summaryLines.push(
+				`Packet ${packetNum + 1}: ${timeStr} | Size: ${capturedLength}/${originalLength} bytes`
+			);
+			
+			// Try to identify protocol from packet data (very basic)
+			if (offset + 16 + capturedLength <= data.length && capturedLength >= 14) {
+				const packetStart = offset + 16;
+				
+				// Ethernet frame - check EtherType (bytes 12-13)
+				if (capturedLength >= 14) {
+					const etherType = view.getUint16(packetStart + 12, false);
+					let protocol = 'Unknown';
+					
+					if (etherType === 0x0800) protocol = 'IPv4';
+					else if (etherType === 0x0806) protocol = 'ARP';
+					else if (etherType === 0x86DD) protocol = 'IPv6';
+					
+					// For IPv4, try to identify transport protocol
+					if (etherType === 0x0800 && capturedLength >= 34) {
+						const ipProtocol = view.getUint8(packetStart + 23);
+						if (ipProtocol === 1) protocol = 'ICMP';
+						else if (ipProtocol === 6) protocol = 'TCP';
+						else if (ipProtocol === 17) protocol = 'UDP';
+						
+						// Extract IPs
+						const srcIP = Array.from(data.slice(packetStart + 26, packetStart + 30)).join('.');
+						const dstIP = Array.from(data.slice(packetStart + 30, packetStart + 34)).join('.');
+						summaryLines.push(`  Protocol: ${protocol} | ${srcIP} → ${dstIP}`);
+					} else {
+						summaryLines.push(`  Protocol: ${protocol}`);
+					}
+				}
+			}
+			
+			packetNum++;
+			offset += 16 + capturedLength;
+		} catch (e) {
+			summaryLines.push(`  [Error parsing packet ${packetNum + 1}]`);
+			break;
+		}
+	}
+	
+	if (metadata.packetCount > maxPackets) {
+		summaryLines.push(`\n... and ${metadata.packetCount - maxPackets} more packets`);
+	}
+	
+	return summaryLines.join('\n');
+}
+
+/**
  * Identify and categorize WARP diag files
  * @param {string} filename
  * @returns {Object} - File category and importance
