@@ -29,7 +29,8 @@ AI-powered analyzer for Cloudflare WARP diagnostic logs and packet captures usin
 - Severity classification (Critical/Warning/Info)
 - Actionable remediation steps
 - Event timeline generation
-- Structured JSON output
+- **Log evidence extraction**: Automatically finds and displays relevant log entries
+- Structured JSON output with collapsible UI sections
 
 ### File Support
 | Format | Support |
@@ -228,11 +229,17 @@ The easiest way to use the analyzer is through the web interface:
    - Detected issues with severity
    - Root cause analysis
    - Remediation recommendations
+   - **Collapsible log evidence** - Actual log entries from uploaded files
    - Full JSON response
 
 The interface includes two tabs:
 - **Upload & Analyze**: Interactive file upload and results
 - **API Documentation**: cURL and JavaScript examples
+
+Each detected issue includes:
+- **📋 View Log Evidence** - Collapsible section showing relevant log entries from your files
+- File name and line numbers for each log entry
+- Context lines around the issue for better understanding
 
 ### API Endpoints
 
@@ -680,6 +687,7 @@ Recommended GitHub settings:
 ✅ **Production-Ready**: Error handling, fallbacks, CORS, monitoring  
 ✅ **Web Interface**: Beautiful drag & drop interface included  
 ✅ **Comprehensive Output**: Root causes, remediation steps, timelines  
+✅ **Log Evidence Extraction**: Automatically extracts and displays relevant log entries for each issue
 
 ### Quick Reference
 

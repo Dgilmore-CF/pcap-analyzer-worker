@@ -363,6 +363,55 @@ export const UI_HTML = `<!DOCTYPE html>
             margin-bottom: 10px;
             font-weight: 500;
         }
+        
+        .log-evidence {
+            margin-top: 15px;
+        }
+        
+        .log-evidence details {
+            background: #f9f9f9;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            padding: 10px 15px;
+            margin-top: 8px;
+        }
+        
+        .log-evidence summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: #1f1f1f;
+            padding: 5px 0;
+            user-select: none;
+        }
+        
+        .log-evidence summary:hover {
+            color: #f38020;
+        }
+        
+        .log-entry {
+            background: #1f1f1f;
+            color: #f8f8f2;
+            padding: 12px;
+            margin: 10px 0 5px 0;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            overflow-x: auto;
+            border-left: 3px solid #f38020;
+        }
+        
+        .log-entry-header {
+            color: #f38020;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+        
+        .log-entry-content {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
@@ -583,7 +632,9 @@ console.log(result);</pre>
 
             if (issues.length > 0) {
                 html += '<div style="margin-top: 20px;"><strong>Issues Detected:</strong></div>';
-                issues.forEach(issue => {
+                issues.forEach((issue, index) => {
+                    const logEntries = issue.log_entries || [];
+                    
                     html += \`
                         <div class="issue \${issue.severity.toLowerCase()}">
                             <div class="issue-title">
@@ -594,6 +645,21 @@ console.log(result);</pre>
                             \${issue.remediation ? \`
                                 <div class="issue-remediation">
                                     <strong>Remediation:</strong><br>\${issue.remediation}
+                                </div>
+                            \` : ''}
+                            \${logEntries.length > 0 ? \`
+                                <div class="log-evidence">
+                                    <details>
+                                        <summary>📋 View Log Evidence (\${logEntries.length} entries)</summary>
+                                        \${logEntries.map(entry => \`
+                                            <div class="log-entry">
+                                                <div class="log-entry-header">
+                                                    📄 \${entry.filename} (line \${entry.lineNumber})
+                                                </div>
+                                                <div class="log-entry-content">\${entry.content}</div>
+                                            </div>
+                                        \`).join('')}
+                                    </details>
                                 </div>
                             \` : ''}
                         </div>

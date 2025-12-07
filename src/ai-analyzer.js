@@ -81,7 +81,8 @@ Format your response as JSON with this structure:
       "root_cause": "Root cause analysis",
       "remediation": "Step-by-step fix",
       "affected_files": ["file1.log", "file2.txt"],
-      "timestamps": ["timestamp1", "timestamp2"]
+      "timestamps": ["timestamp1", "timestamp2"],
+      "evidence_keywords": ["keyword1", "keyword2", "error phrase"]
     }
   ],
   "timeline": [
@@ -110,6 +111,11 @@ Format your response as JSON with this structure:
 
 		// Parse AI response
 		const result = parseAIResponse(response);
+		
+		// Enrich issues with actual log evidence
+		if (result.issues) {
+			result.issues = result.issues.map(issue => enrichIssueWithLogEvidence(issue, logFiles));
+		}
 		
 		return {
 			success: true,
@@ -157,6 +163,78 @@ function buildAnalysisContext(logFiles, pcapMetadata) {
 	}
 
 	return context;
+}
+
+/**
+ * Enrich issue with relevant log evidence
+ * @param {Object} issue - Issue object from AI analysis
+ * @param {Array} logFiles - Array of log file objects
+ * @returns {Object} - Issue enriched with log_entries
+ */
+function enrichIssueWithLogEvidence(issue, logFiles) {
+	const logEntries = [];
+	const maxEntriesPerFile = 10; // Limit entries per file
+	const maxLineLength = 500; // Truncate very long lines
+	
+	// Get keywords to search for
+	const keywords = issue.evidence_keywords || [];
+	const affectedFiles = issue.affected_files || [];
+	
+	// If no specific files mentioned, search all files
+	const filesToSearch = affectedFiles.length > 0 
+		? logFiles.filter(f => affectedFiles.some(af => f.filename.includes(af)))
+		: logFiles;
+	
+	for (const file of filesToSearch) {
+		const lines = file.content.split('\n');
+		const matchedLines = [];
+		
+		// Search for lines containing keywords or timestamps
+		for (let i = 0; i < lines.length && matchedLines.length < maxEntriesPerFile; i++) {
+			const line = lines[i];
+			const lowerLine = line.toLowerCase();
+			
+			// Check if line contains any keyword
+			const hasKeyword = keywords.some(kw => lowerLine.includes(kw.toLowerCase()));
+			
+			// Also check for error/warning indicators
+			const hasError = lowerLine.includes('error') || 
+			                 lowerLine.includes('fail') || 
+			                 lowerLine.includes('warning') ||
+			                 lowerLine.includes('critical');
+			
+			// Check for timestamps mentioned in issue
+			const hasTimestamp = issue.timestamps && 
+			                     issue.timestamps.some(ts => line.includes(ts));
+			
+			if (hasKeyword || hasTimestamp || (hasError && keywords.length === 0)) {
+				// Include context: previous and next line
+				const contextLines = [];
+				if (i > 0) contextLines.push(lines[i - 1]);
+				contextLines.push(line);
+				if (i < lines.length - 1) contextLines.push(lines[i + 1]);
+				
+				const entry = contextLines.join('\n');
+				const truncated = entry.length > maxLineLength 
+					? entry.substring(0, maxLineLength) + '...'
+					: entry;
+				
+				matchedLines.push({
+					filename: file.filename,
+					lineNumber: i + 1,
+					content: truncated
+				});
+			}
+		}
+		
+		logEntries.push(...matchedLines);
+	}
+	
+	// Return issue with log_entries added
+	return {
+		...issue,
+		log_entries: logEntries.slice(0, 20) // Limit total entries to 20
+	};
 }
 
 /**
@@ -225,7 +303,8 @@ function generateFallbackAnalysis(logFiles, pcapMetadata) {
 				description: `Connection issues found in ${file.filename}`,
 				root_cause: 'Unable to establish tunnel connection',
 				remediation: 'Check network connectivity and firewall rules',
-				affected_files: [file.filename]
+				affected_files: [file.filename],
+				evidence_keywords: ['failed to connect', 'connection refused']
 			});
 		}
 
@@ -238,7 +317,8 @@ function generateFallbackAnalysis(logFiles, pcapMetadata) {
 				description: `DNS errors found in ${file.filename}`,
 				root_cause: 'DNS resolver not responding or domain not found',
 				remediation: 'Verify DNS settings and network configuration',
-				affected_files: [file.filename]
+				affected_files: [file.filename],
+				evidence_keywords: ['dns timeout', 'nxdomain']
 			});
 		}
 
@@ -251,16 +331,20 @@ function generateFallbackAnalysis(logFiles, pcapMetadata) {
 				description: `Certificate issues in ${file.filename}`,
 				root_cause: 'Invalid or expired TLS certificate',
 				remediation: 'Ensure root certificate is properly installed',
-				affected_files: [file.filename]
+				affected_files: [file.filename],
+				evidence_keywords: ['certificate', 'invalid', 'expired']
 			});
 		}
 	}
+
+	// Enrich fallback issues with log evidence
+	const enrichedIssues = issues.map(issue => enrichIssueWithLogEvidence(issue, logFiles));
 
 	return {
 		summary: `Fallback analysis: Processed ${logFiles.length} files. ${issues.length} issues detected.`,
 		health_status: issues.some(i => i.severity === 'Critical') ? 'Critical' : 
 		               issues.length > 0 ? 'Degraded' : 'Healthy',
-		issues,
+		issues: enrichedIssues,
 		timeline: [],
 		recommendations: [
 			'Review detailed logs for more information',
