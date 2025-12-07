@@ -1,0 +1,20 @@
+{
+	"name": "pcap-analyzer-worker",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"test": "vitest"
+	},
+	"dependencies": {
+		"fflate": "^0.8.2"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.8.19",
+		"@cloudflare/workers-types": "^4.20241127.0",
+		"vitest": "~3.2.0",
+		"wrangler": "^4.22.0"
+	}
+}
