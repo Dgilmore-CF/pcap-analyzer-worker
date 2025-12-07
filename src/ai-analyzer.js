@@ -16,7 +16,7 @@ const WARP_DIAGNOSTICS_PROMPT = `You are an expert Cloudflare WARP network diagn
 When analyzing logs:
 1. Identify root causes, not just symptoms
 2. Classify issues by severity (Critical, Warning, Info)
-3. Provide specific, actionable remediation steps
+3. Provide specific, actionable remediation steps as numbered lists (e.g., "1. First step 2. Second step")
 4. Note relevant timestamps and sequences of events
 5. Highlight patterns that indicate common problems
 
@@ -79,7 +79,7 @@ Format your response as JSON with this structure:
       "title": "Issue title",
       "description": "Detailed description",
       "root_cause": "Root cause analysis",
-      "remediation": "Step-by-step fix",
+      "remediation": "Numbered remediation steps (format: '1. First step 2. Second step 3. Third step')",
       "affected_files": ["file1.log", "file2.txt"],
       "timestamps": ["timestamp1", "timestamp2"],
       "evidence_keywords": ["keyword1", "keyword2", "error phrase"]
@@ -302,7 +302,7 @@ function generateFallbackAnalysis(logFiles, pcapMetadata) {
 				title: 'Connection failure detected',
 				description: `Connection issues found in ${file.filename}`,
 				root_cause: 'Unable to establish tunnel connection',
-				remediation: 'Check network connectivity and firewall rules',
+				remediation: '1. Check network connectivity 2. Verify firewall rules allow WARP traffic 3. Restart WARP client',
 				affected_files: [file.filename],
 				evidence_keywords: ['failed to connect', 'connection refused']
 			});
@@ -316,7 +316,7 @@ function generateFallbackAnalysis(logFiles, pcapMetadata) {
 				title: 'DNS resolution problems',
 				description: `DNS errors found in ${file.filename}`,
 				root_cause: 'DNS resolver not responding or domain not found',
-				remediation: 'Verify DNS settings and network configuration',
+				remediation: '1. Verify DNS settings in WARP configuration 2. Check network DNS configuration 3. Test with different DNS resolver',
 				affected_files: [file.filename],
 				evidence_keywords: ['dns timeout', 'nxdomain']
 			});
@@ -330,7 +330,7 @@ function generateFallbackAnalysis(logFiles, pcapMetadata) {
 				title: 'Certificate validation failure',
 				description: `Certificate issues in ${file.filename}`,
 				root_cause: 'Invalid or expired TLS certificate',
-				remediation: 'Ensure root certificate is properly installed',
+				remediation: '1. Ensure root certificate is properly installed 2. Update system certificates 3. Verify system time and date are correct',
 				affected_files: [file.filename],
 				evidence_keywords: ['certificate', 'invalid', 'expired']
 			});

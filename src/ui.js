@@ -299,6 +299,21 @@ export const UI_HTML = `<!DOCTYPE html>
             border-left: 3px solid #f38020;
         }
         
+        .issue-remediation ol {
+            margin: 8px 0 0 20px;
+            padding-left: 10px;
+            line-height: 1.8;
+        }
+        
+        .issue-remediation li {
+            margin-bottom: 8px;
+            padding-left: 5px;
+        }
+        
+        .issue-remediation li:last-child {
+            margin-bottom: 0;
+        }
+        
         pre {
             background: #1f1f1f;
             color: #f8f8f2;
@@ -612,6 +627,27 @@ console.log(result);</pre>
             errorDiv.classList.add('active');
         }
 
+        function formatRemediation(text) {
+            if (!text) return '';
+            
+            // Check if text contains numbered steps (e.g., "1.", "2.", etc.)
+            const numberedPattern = /(\d+\.\s+[^\d]+?)(?=\d+\.\s+|$)/g;
+            const matches = text.match(numberedPattern);
+            
+            if (matches && matches.length > 1) {
+                // Format as ordered list
+                const steps = matches.map(step => {
+                    // Remove leading number and clean up
+                    const cleaned = step.replace(/^\d+\.\s*/, '').trim();
+                    return \`<li>\${cleaned}</li>\`;
+                }).join('');
+                return \`<ol>\${steps}</ol>\`;
+            }
+            
+            // Otherwise, just preserve line breaks
+            return text.replace(/\n/g, '<br>');
+        }
+
         function displayResults(data) {
             results.classList.add('active');
             
@@ -644,7 +680,8 @@ console.log(result);</pre>
                             <div class="issue-description">\${issue.description}</div>
                             \${issue.remediation ? \`
                                 <div class="issue-remediation">
-                                    <strong>Remediation:</strong><br>\${issue.remediation}
+                                    <strong>Remediation:</strong>
+                                    \${formatRemediation(issue.remediation)}
                                 </div>
                             \` : ''}
                             \${logEntries.length > 0 ? \`
