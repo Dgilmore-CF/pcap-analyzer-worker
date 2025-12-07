@@ -32,9 +32,10 @@ export function parseTextFile(data) {
 }
 
 /**
- * Parse PCAP file and extract basic metadata
+ * Parse PCAP/PCAPNG file and extract basic metadata
  * Note: Full PCAP parsing requires binary analysis. This provides basic info.
- * @param {Uint8Array} data - PCAP file data
+ * Supports both PCAP (legacy) and PCAPNG (next generation) formats.
+ * @param {Uint8Array} data - PCAP/PCAPNG file data
  * @returns {Object} - Basic PCAP metadata
  */
 export function parsePcapBasic(data) {
@@ -97,7 +98,7 @@ export function categorizeWarpFile(filename) {
 		system: ['sysinfo.json', 'platform.txt', 'version.txt', 'date.txt'],
 		performance: ['stats.log', 'warp-stats.txt', 'warp-bus-metrics.txt'],
 		security: ['warp-device-posture.txt', 'firewall-rules.txt', 'installed_cert.pem'],
-		pcap: ['.pcap', '.qlog'],
+		pcap: ['.pcap', '.pcapng', '.qlog'],
 	};
 
 	for (const [category, patterns] of Object.entries(categories)) {

@@ -7,6 +7,16 @@ import { extractZipFiles, parseTextFile, parsePcapBasic, categorizeWarpFile, ext
 import { analyzeWarpDiagnostics, analyzePcapWithAI } from './ai-analyzer.js';
 import { UI_HTML } from './ui.js';
 
+/**
+ * Check if filename is a PCAP or PCAPNG file
+ * @param {string} filename 
+ * @returns {boolean}
+ */
+function isPcapFile(filename) {
+  const lower = filename.toLowerCase();
+  return lower.endsWith('.pcap') || lower.endsWith('.pcapng');
+}
+
 // CORS headers for cross-origin requests
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -81,8 +91,8 @@ async function processUploadedFiles(formData) {
       for (const [filename, data] of extractedFiles) {
         const category = categorizeWarpFile(filename);
         
-        if (filename.endsWith('.pcap')) {
-          // Parse PCAP file
+        if (isPcapFile(filename)) {
+          // Parse PCAP/PCAPNG file
           const pcapMetadata = parsePcapBasic(data);
           allPcapMetadata.push({ filename, ...pcapMetadata });
         } else {
@@ -102,8 +112,8 @@ async function processUploadedFiles(formData) {
           }
         }
       }
-    } else if (file.name.endsWith('.pcap')) {
-      // Individual PCAP file
+    } else if (isPcapFile(file.name)) {
+      // Individual PCAP/PCAPNG file
       const pcapMetadata = parsePcapBasic(new Uint8Array(file.data));
       allPcapMetadata.push({ filename: file.name, ...pcapMetadata });
     } else {

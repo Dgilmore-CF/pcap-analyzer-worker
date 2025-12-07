@@ -451,9 +451,9 @@ export const UI_HTML = `<!DOCTYPE html>
                 <div class="upload-icon">📁</div>
                 <div class="upload-text">
                     Click or drag files here<br>
-                    <small>Supports: .zip (warp-diag), .pcap, .log, .txt, .json</small>
+                    <small>Supports: .zip (warp-diag), .pcap, .pcapng, .log, .txt, .json</small>
                 </div>
-                <input type="file" id="fileInput" multiple accept=".zip,.pcap,.log,.txt,.json">
+                <input type="file" id="fileInput" multiple accept=".zip,.pcap,.pcapng,.log,.txt,.json">
             </div>
             
             <div class="selected-files" id="selectedFiles" style="display: none;">
@@ -652,9 +652,22 @@ console.log(result);</pre>
             errorDiv.textContent = '❌ Error: ' + message;
             errorDiv.classList.add('active');
         }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            if (typeof text !== 'string') text = String(text);
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         function formatRemediation(text) {
             if (!text) return '';
+            
+            // Ensure text is a string
+            if (typeof text !== 'string') {
+                text = String(text);
+            }
             
             // Check if text contains numbered steps (e.g., "1.", "2.", etc.)
             const numberedPattern = /(\\d+\\.\\s+[^\\d]+?)(?=\\d+\\.\\s+|$)/g;
@@ -682,8 +695,8 @@ console.log(result);</pre>
             const issues = analysis.issues || [];
 
             let html = '<div class="result-header">Analysis Results</div>' +
-                '<div class="health-status ' + healthStatus.toLowerCase() + '">' + healthStatus + '</div>' +
-                '<p><strong>Summary:</strong> ' + (analysis.summary || 'No summary available') + '</p>' +
+                '<div class="health-status ' + String(healthStatus).toLowerCase() + '">' + escapeHtml(healthStatus) + '</div>' +
+                '<p><strong>Summary:</strong> ' + escapeHtml(analysis.summary || 'No summary available') + '</p>' +
                 '<p style="margin-top: 10px; font-size: 14px; color: #666;">' +
                     'Files Processed: ' + (data.filesProcessed?.total || 0) + ' | ' +
                     'Files Analyzed: ' + (data.filesAnalyzed || 0) + ' | ' +
@@ -694,11 +707,14 @@ console.log(result);</pre>
                 html += '<div style="margin-top: 20px;"><strong>Issues Detected:</strong></div>';
                 issues.forEach((issue, index) => {
                     const logEntries = issue.log_entries || [];
-                    const severityIcon = issue.severity === 'Critical' ? '🔴' : issue.severity === 'Warning' ? '⚠️' : 'ℹ️';
+                    const severity = issue.severity || 'Info';
+                    const title = issue.title || 'Unknown Issue';
+                    const description = issue.description || '';
+                    const severityIcon = severity === 'Critical' ? '🔴' : severity === 'Warning' ? '⚠️' : 'ℹ️';
                     
-                    html += '<div class="issue ' + issue.severity.toLowerCase() + '">' +
-                        '<div class="issue-title">' + severityIcon + ' ' + issue.title + '</div>' +
-                        '<div class="issue-description">' + issue.description + '</div>';
+                    html += '<div class="issue ' + String(severity).toLowerCase() + '">' +
+                        '<div class="issue-title">' + severityIcon + ' ' + escapeHtml(title) + '</div>' +
+                        '<div class="issue-description">' + escapeHtml(description) + '</div>';
                     
                     if (issue.remediation) {
                         html += '<div class="issue-remediation">' +
@@ -713,8 +729,8 @@ console.log(result);</pre>
                         
                         logEntries.forEach(entry => {
                             html += '<div class="log-entry">' +
-                                '<div class="log-entry-header">📄 ' + entry.filename + ' (line ' + entry.lineNumber + ')</div>' +
-                                '<div class="log-entry-content">' + entry.content + '</div>' +
+                                '<div class="log-entry-header">📄 ' + escapeHtml(entry.filename) + ' (line ' + (entry.lineNumber || 0) + ')</div>' +
+                                '<div class="log-entry-content">' + escapeHtml(entry.content) + '</div>' +
                                 '</div>';
                         });
                         
@@ -729,7 +745,7 @@ console.log(result);</pre>
                 html += '<div style="margin-top: 20px;"><strong>Recommendations:</strong></div>';
                 html += '<ul style="margin-left: 20px; margin-top: 10px;">';
                 analysis.recommendations.forEach(rec => {
-                    html += '<li style="margin-bottom: 5px;">' + rec + '</li>';
+                    html += '<li style="margin-bottom: 5px;">' + escapeHtml(rec) + '</li>';
                 });
                 html += '</ul>';
             }

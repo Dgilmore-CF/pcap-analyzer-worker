@@ -36,7 +36,7 @@ AI-powered analyzer for Cloudflare WARP diagnostic logs and packet captures usin
 | Format | Support |
 |--------|---------|
 | WARP diag ZIP | ✅ Full extraction & parsing (40+ file types) |
-| PCAP files | ✅ Binary parsing & metadata extraction |
+| PCAP/PCAPNG files | ✅ Binary parsing & metadata extraction |
 | Individual logs | ✅ Text parsing & categorization (`.log`, `.txt`, `.json`) |
 
 ### Diagnostic Capabilities
@@ -149,7 +149,7 @@ AI Analysis → Parse Response → Format Output
 - **DNS**: `daemon_dns.log`, `dns-check.txt`, `dns_stats.log`, `dig.txt`
 - **Network**: `ifconfig.txt`, `netstat.txt`, `route.txt`, `traceroute.txt`
 - **Config**: `warp-settings.txt`, `warp-account.txt`, `mdm.plist`
-- **PCAP**: `capture-default.pcap`, `capture-tunnel.pcap`
+- **PCAP**: `capture-default.pcap`, `capture-tunnel.pcapng`
 
 ---
 
@@ -221,7 +221,7 @@ The easiest way to use the analyzer is through the web interface:
 
 2. **Upload files**: Drag & drop or click to select files
    - WARP diag ZIP files
-   - Individual PCAP files
+   - Individual PCAP/PCAPNG files
    - Individual log files
 
 3. **View results**: Get AI-powered analysis with:
@@ -283,10 +283,10 @@ Upload WARP diagnostic files for analysis (both API and web interface use this).
 curl -X POST https://your-worker.workers.dev \
   -F "file=@warp-debugging-info-2024-12-05-143000.zip"
 
-# Upload multiple PCAP files
+# Upload multiple PCAP/PCAPNG files
 curl -X POST https://your-worker.workers.dev \
   -F "file1=@capture-default.pcap" \
-  -F "file2=@capture-tunnel.pcap"
+  -F "file2=@capture-tunnel.pcapng"
 
 # Upload individual logs
 curl -X POST https://your-worker.workers.dev \
@@ -564,7 +564,7 @@ Monitor your worker:
 - **Fix**: Use `multipart/form-data` encoding for file uploads
 
 **"No valid WARP diag or PCAP files found"**
-- **Fix**: Verify file format (ZIP, PCAP, or text logs), check ZIP contents
+- **Fix**: Verify file format (ZIP, PCAP/PCAPNG, or text logs), check ZIP contents
 
 **"Request timeout" errors**
 - **Cause**: Large files or slow AI inference
