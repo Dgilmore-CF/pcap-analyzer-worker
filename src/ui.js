@@ -507,39 +507,65 @@ console.log(result);</pre>
     </div>
 
     <script>
-        const currentUrl = window.location.origin;
+        console.log('Script starting...');
         
-        // Update API documentation with current URL
-        document.getElementById('apiEndpoint').textContent = currentUrl;
-        document.getElementById('curlUrl').textContent = currentUrl;
-        document.getElementById('jsUrl').textContent = currentUrl;
-        document.getElementById('getUrl').textContent = currentUrl;
-        
-        // Tab switching
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabName = tab.dataset.tab;
-                
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
-                tab.classList.add('active');
-                document.getElementById(tabName + '-tab').classList.add('active');
+        try {
+            const currentUrl = window.location.origin;
+            console.log('Current URL:', currentUrl);
+            
+            // Update API documentation with current URL
+            const apiEndpoint = document.getElementById('apiEndpoint');
+            const curlUrl = document.getElementById('curlUrl');
+            const jsUrl = document.getElementById('jsUrl');
+            const getUrl = document.getElementById('getUrl');
+            
+            if (apiEndpoint) apiEndpoint.textContent = currentUrl;
+            if (curlUrl) curlUrl.textContent = currentUrl;
+            if (jsUrl) jsUrl.textContent = currentUrl;
+            if (getUrl) getUrl.textContent = currentUrl;
+            
+            console.log('API docs updated');
+            
+            // Tab switching
+            const tabs = document.querySelectorAll('.tab');
+            console.log('Found tabs:', tabs.length);
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    console.log('Tab clicked:', tab.dataset.tab);
+                    const tabName = tab.dataset.tab;
+                    
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(tabName + '-tab').classList.add('active');
+                });
             });
-        });
-        
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const selectedFiles = document.getElementById('selectedFiles');
-        const fileList = document.getElementById('fileList');
-        const loading = document.getElementById('loading');
-        const results = document.getElementById('results');
-        const errorDiv = document.getElementById('error');
+            
+            console.log('Tab listeners attached');
+            
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const selectedFiles = document.getElementById('selectedFiles');
+            const fileList = document.getElementById('fileList');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const errorDiv = document.getElementById('error');
+            
+            console.log('Elements found:', {
+                uploadArea: !!uploadArea,
+                fileInput: !!fileInput,
+                analyzeBtn: !!analyzeBtn
+            });
 
-        let files = [];
+            let files = [];
 
-        uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('click', () => {
+                console.log('Upload area clicked');
+                fileInput.click();
+            });
 
         fileInput.addEventListener('change', (e) => {
             files = Array.from(e.target.files);
@@ -572,12 +598,12 @@ console.log(result);</pre>
             selectedFiles.style.display = 'block';
             analyzeBtn.disabled = false;
 
-            fileList.innerHTML = files.map(file => \`
-                <div class="file-item">
-                    <span class="file-name">\${file.name}</span>
-                    <span class="file-size">\${formatBytes(file.size)}</span>
-                </div>
-            \`).join('');
+            fileList.innerHTML = files.map(file => 
+                '<div class="file-item">' +
+                    '<span class="file-name">' + file.name + '</span>' +
+                    '<span class="file-size">' + formatBytes(file.size) + '</span>' +
+                '</div>'
+            ).join('');
         }
 
         function formatBytes(bytes) {
@@ -599,7 +625,7 @@ console.log(result);</pre>
             try {
                 const formData = new FormData();
                 files.forEach((file, index) => {
-                    formData.append(\`file\${index}\`, file);
+                    formData.append('file' + index, file);
                 });
 
                 const response = await fetch(currentUrl, {
@@ -631,21 +657,21 @@ console.log(result);</pre>
             if (!text) return '';
             
             // Check if text contains numbered steps (e.g., "1.", "2.", etc.)
-            const numberedPattern = /(\d+\.\s+[^\d]+?)(?=\d+\.\s+|$)/g;
+            const numberedPattern = /(\\d+\\.\\s+[^\\d]+?)(?=\\d+\\.\\s+|$)/g;
             const matches = text.match(numberedPattern);
             
             if (matches && matches.length > 1) {
                 // Format as ordered list
                 const steps = matches.map(step => {
                     // Remove leading number and clean up
-                    const cleaned = step.replace(/^\d+\.\s*/, '').trim();
-                    return \`<li>\${cleaned}</li>\`;
+                    const cleaned = step.replace(/^\\d+\\.\\s*/, '').trim();
+                    return '<li>' + cleaned + '</li>';
                 }).join('');
-                return \`<ol>\${steps}</ol>\`;
+                return '<ol>' + steps + '</ol>';
             }
             
             // Otherwise, just preserve line breaks
-            return text.replace(/\n/g, '<br>');
+            return text.replace(/\\n/g, '<br>');
         }
 
         function displayResults(data) {
@@ -655,52 +681,47 @@ console.log(result);</pre>
             const healthStatus = analysis.health_status || 'Unknown';
             const issues = analysis.issues || [];
 
-            let html = \`
-                <div class="result-header">Analysis Results</div>
-                <div class="health-status \${healthStatus.toLowerCase()}">\${healthStatus}</div>
-                <p><strong>Summary:</strong> \${analysis.summary || 'No summary available'}</p>
-                <p style="margin-top: 10px; font-size: 14px; color: #666;">
-                    Files Processed: \${data.filesProcessed?.total || 0} | 
-                    Files Analyzed: \${data.filesAnalyzed || 0} | 
-                    Model: \${data.modelUsed || 'Unknown'}
-                </p>
-            \`;
+            let html = '<div class="result-header">Analysis Results</div>' +
+                '<div class="health-status ' + healthStatus.toLowerCase() + '">' + healthStatus + '</div>' +
+                '<p><strong>Summary:</strong> ' + (analysis.summary || 'No summary available') + '</p>' +
+                '<p style="margin-top: 10px; font-size: 14px; color: #666;">' +
+                    'Files Processed: ' + (data.filesProcessed?.total || 0) + ' | ' +
+                    'Files Analyzed: ' + (data.filesAnalyzed || 0) + ' | ' +
+                    'Model: ' + (data.modelUsed || 'Unknown') +
+                '</p>';
 
             if (issues.length > 0) {
                 html += '<div style="margin-top: 20px;"><strong>Issues Detected:</strong></div>';
                 issues.forEach((issue, index) => {
                     const logEntries = issue.log_entries || [];
+                    const severityIcon = issue.severity === 'Critical' ? '🔴' : issue.severity === 'Warning' ? '⚠️' : 'ℹ️';
                     
-                    html += \`
-                        <div class="issue \${issue.severity.toLowerCase()}">
-                            <div class="issue-title">
-                                \${issue.severity === 'Critical' ? '🔴' : issue.severity === 'Warning' ? '⚠️' : 'ℹ️'}
-                                \${issue.title}
-                            </div>
-                            <div class="issue-description">\${issue.description}</div>
-                            \${issue.remediation ? \`
-                                <div class="issue-remediation">
-                                    <strong>Remediation:</strong>
-                                    \${formatRemediation(issue.remediation)}
-                                </div>
-                            \` : ''}
-                            \${logEntries.length > 0 ? \`
-                                <div class="log-evidence">
-                                    <details>
-                                        <summary>📋 View Log Evidence (\${logEntries.length} entries)</summary>
-                                        \${logEntries.map(entry => \`
-                                            <div class="log-entry">
-                                                <div class="log-entry-header">
-                                                    📄 \${entry.filename} (line \${entry.lineNumber})
-                                                </div>
-                                                <div class="log-entry-content">\${entry.content}</div>
-                                            </div>
-                                        \`).join('')}
-                                    </details>
-                                </div>
-                            \` : ''}
-                        </div>
-                    \`;
+                    html += '<div class="issue ' + issue.severity.toLowerCase() + '">' +
+                        '<div class="issue-title">' + severityIcon + ' ' + issue.title + '</div>' +
+                        '<div class="issue-description">' + issue.description + '</div>';
+                    
+                    if (issue.remediation) {
+                        html += '<div class="issue-remediation">' +
+                            '<strong>Remediation:</strong>' +
+                            formatRemediation(issue.remediation) +
+                            '</div>';
+                    }
+                    
+                    if (logEntries.length > 0) {
+                        html += '<div class="log-evidence"><details>' +
+                            '<summary>📋 View Log Evidence (' + logEntries.length + ' entries)</summary>';
+                        
+                        logEntries.forEach(entry => {
+                            html += '<div class="log-entry">' +
+                                '<div class="log-entry-header">📄 ' + entry.filename + ' (line ' + entry.lineNumber + ')</div>' +
+                                '<div class="log-entry-content">' + entry.content + '</div>' +
+                                '</div>';
+                        });
+                        
+                        html += '</details></div>';
+                    }
+                    
+                    html += '</div>';
                 });
             }
 
@@ -708,17 +729,22 @@ console.log(result);</pre>
                 html += '<div style="margin-top: 20px;"><strong>Recommendations:</strong></div>';
                 html += '<ul style="margin-left: 20px; margin-top: 10px;">';
                 analysis.recommendations.forEach(rec => {
-                    html += \`<li style="margin-bottom: 5px;">\${rec}</li>\`;
+                    html += '<li style="margin-bottom: 5px;">' + rec + '</li>';
                 });
                 html += '</ul>';
             }
 
-            html += \`<details style="margin-top: 20px;">
-                <summary style="cursor: pointer; font-weight: 600; margin-bottom: 10px;">View Raw JSON Response</summary>
-                <pre>\${JSON.stringify(data, null, 2)}</pre>
-            </details>\`;
+            html += '<details style="margin-top: 20px;">' +
+                '<summary style="cursor: pointer; font-weight: 600; margin-bottom: 10px;">View Raw JSON Response</summary>' +
+                '<pre>' + JSON.stringify(data, null, 2) + '</pre>' +
+                '</details>';
             
             results.innerHTML = html;
+        }
+        
+        } catch (error) {
+            console.error('Script error:', error);
+            alert('JavaScript error: ' + error.message + '. Please check the console for details.');
         }
     </script>
 </body>
