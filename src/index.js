@@ -60,8 +60,10 @@ function successResponse(data) {
 
 /**
  * Process uploaded files and extract analysis data
+ * @param {FormData} formData - The form data containing files and options
+ * @param {number} packetCount - Number of packets to analyze (0 = all)
  */
-async function processUploadedFiles(formData) {
+async function processUploadedFiles(formData, packetCount = 50) {
   const files = [];
   const pcapFiles = [];
   
@@ -97,7 +99,7 @@ async function processUploadedFiles(formData) {
           allPcapMetadata.push({ filename, ...pcapMetadata });
           
           // Also extract packet summaries as searchable text for evidence
-          const packetSummary = extractPcapPacketSummaries(data, filename);
+          const packetSummary = extractPcapPacketSummaries(data, filename, packetCount);
           allLogFiles.push({
             filename,
             content: packetSummary,
@@ -129,7 +131,7 @@ async function processUploadedFiles(formData) {
       allPcapMetadata.push({ filename: file.name, ...pcapMetadata });
       
       // Extract packet summaries as searchable text for evidence
-      const packetSummary = extractPcapPacketSummaries(pcapData, file.name);
+      const packetSummary = extractPcapPacketSummaries(pcapData, file.name, packetCount);
       allLogFiles.push({
         filename: file.name,
         content: packetSummary,
@@ -215,8 +217,17 @@ export default {
 
       const formData = await request.formData();
       
+      // Extract packet count option (default to 50 if not specified)
+      let packetCount = 50;
+      const packetCountValue = formData.get('packetCount');
+      if (packetCountValue) {
+        const parsed = parseInt(packetCountValue, 10);
+        // 0 means all packets, otherwise use the specified value
+        packetCount = isNaN(parsed) ? 50 : parsed;
+      }
+      
       // Process uploaded files
-      const { logFiles, pcapMetadata } = await processUploadedFiles(formData);
+      const { logFiles, pcapMetadata } = await processUploadedFiles(formData, packetCount);
 
       if (logFiles.length === 0 && pcapMetadata.length === 0) {
         return errorResponse('No valid WARP diag or PCAP files found in upload');

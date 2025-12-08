@@ -124,9 +124,10 @@ export function parsePcapBasic(data) {
  * Extract detailed packet summaries from PCAP/PCAPNG as text entries
  * @param {Uint8Array} data - PCAP/PCAPNG file data
  * @param {string} filename - Original filename
+ * @param {number} maxPacketsToAnalyze - Max packets to analyze (0 = all)
  * @returns {string} - Text summary of packets for analysis
  */
-export function extractPcapPacketSummaries(data, filename) {
+export function extractPcapPacketSummaries(data, filename, maxPacketsToAnalyze = 50) {
 	const metadata = parsePcapBasic(data);
 	
 	if (metadata.error) {
@@ -142,9 +143,15 @@ export function extractPcapPacketSummaries(data, filename) {
 	summaryLines.push(`Format: ${metadata.format} v${metadata.version}`);
 	summaryLines.push(`Total Packets: ${metadata.packetCount}`);
 	summaryLines.push(`File Size: ${metadata.fileSize} bytes`);
-	summaryLines.push(`\n=== PACKET ANALYSIS (first 50 packets) ===\n`);
 	
-	const maxPackets = Math.min(50, metadata.packetCount); // Analyze up to 50 packets
+	// Determine how many packets to analyze (0 = all)
+	const maxPackets = maxPacketsToAnalyze === 0 
+		? metadata.packetCount 
+		: Math.min(maxPacketsToAnalyze, metadata.packetCount);
+	
+	const analysisScope = maxPacketsToAnalyze === 0 ? 'ALL packets' : `first ${maxPackets} packets`;
+	summaryLines.push(`\n=== PACKET ANALYSIS (${analysisScope}) ===\n`);
+	
 	let packetNum = 0;
 	
 	if (isPcapNg) {

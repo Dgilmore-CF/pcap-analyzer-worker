@@ -191,11 +191,73 @@ export const UI_HTML = `<!DOCTYPE html>
         .loading {
             display: none;
             text-align: center;
-            padding: 20px;
+            padding: 30px;
+            color: #666;
         }
         
         .loading.active {
             display: block;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin: 20px 0 10px 0;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #f6821f 0%, #ff9933 100%);
+            border-radius: 4px;
+            width: 0;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(246,130,31,0.5);
+        }
+        
+        .progress-status {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+            min-height: 20px;
+        }
+        
+        .pcap-options {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .pcap-options label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .packet-count-select {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        
+        .packet-count-select:hover {
+            border-color: #f6821f;
+        }
+        
+        .packet-count-select:focus {
+            outline: none;
+            border-color: #f6821f;
+            box-shadow: 0 0 0 3px rgba(246,130,31,0.1);
         }
         
         .spinner {
@@ -461,11 +523,31 @@ export const UI_HTML = `<!DOCTYPE html>
                 <div id="fileList"></div>
             </div>
             
+            <div class="pcap-options" id="pcapOptions" style="display: none;">
+                <label for="packetCount">
+                    <strong>🔍 PCAP Packet Analysis Depth:</strong>
+                </label>
+                <select id="packetCount" class="packet-count-select">
+                    <option value="25">25 packets (Fast)</option>
+                    <option value="50" selected>50 packets (Balanced)</option>
+                    <option value="100">100 packets (Detailed)</option>
+                    <option value="200">200 packets (Thorough)</option>
+                    <option value="0">All packets (Complete - may be slow)</option>
+                </select>
+                <small style="display: block; margin-top: 5px; color: #666;">
+                    More packets = better analysis but slower processing
+                </small>
+            </div>
+            
             <button id="analyzeBtn" disabled>Analyze Files</button>
             
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <p>Analyzing with AI... This may take a few seconds</p>
+                <p id="loadingMessage">Analyzing with AI... This may take a few seconds</p>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <p id="progressStatus" class="progress-status"></p>
             </div>
             
             <div class="error" id="error"></div>
@@ -592,6 +674,7 @@ console.log(result);</pre>
             if (files.length === 0) {
                 selectedFiles.style.display = 'none';
                 analyzeBtn.disabled = true;
+                document.getElementById('pcapOptions').style.display = 'none';
                 return;
             }
 
@@ -604,6 +687,19 @@ console.log(result);</pre>
                     '<span class="file-size">' + formatBytes(file.size) + '</span>' +
                 '</div>'
             ).join('');
+            
+            // Show PCAP options if any PCAP/PCAPNG files are selected
+            const hasPcapFiles = files.some(file => {
+                const name = file.name.toLowerCase();
+                return name.endsWith('.pcap') || name.endsWith('.pcapng');
+            });
+            
+            const pcapOptions = document.getElementById('pcapOptions');
+            if (hasPcapFiles) {
+                pcapOptions.style.display = 'block';
+            } else {
+                pcapOptions.style.display = 'none';
+            }
         }
 
         function formatBytes(bytes) {
@@ -621,24 +717,57 @@ console.log(result);</pre>
             results.classList.remove('active');
             errorDiv.classList.remove('active');
             analyzeBtn.disabled = true;
+            
+            const progressBar = document.getElementById('progressBar');
+            const progressStatus = document.getElementById('progressStatus');
+            const loadingMessage = document.getElementById('loadingMessage');
+            
+            // Reset progress
+            progressBar.style.width = '0%';
+            progressStatus.textContent = '';
 
             try {
+                // Stage 1: Preparing files
+                updateProgress(10, 'Preparing files for upload...');
+                
                 const formData = new FormData();
                 files.forEach((file, index) => {
                     formData.append('file' + index, file);
                 });
-
+                
+                // Include packet count if PCAP files are present
+                const packetCountSelect = document.getElementById('packetCount');
+                if (packetCountSelect && packetCountSelect.offsetParent !== null) {
+                    formData.append('packetCount', packetCountSelect.value);
+                }
+                
+                // Stage 2: Uploading
+                updateProgress(25, 'Uploading files to server...');
+                
                 const response = await fetch(currentUrl, {
                     method: 'POST',
                     body: formData,
                 });
+                
+                // Stage 3: Processing
+                updateProgress(50, 'Processing files and extracting data...');
 
                 if (!response.ok) {
                     const error = await response.json();
                     throw new Error(error.error || 'Analysis failed');
                 }
-
+                
+                // Stage 4: AI Analysis
+                updateProgress(75, 'Running AI analysis...');
+                
                 const data = await response.json();
+                
+                // Stage 5: Complete
+                updateProgress(100, 'Analysis complete!');
+                
+                // Small delay to show 100% before transitioning
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
                 displayResults(data);
             } catch (error) {
                 showError(error.message);
@@ -648,8 +777,20 @@ console.log(result);</pre>
             }
         });
 
+        function updateProgress(percent, message) {
+            const progressBar = document.getElementById('progressBar');
+            const progressStatus = document.getElementById('progressStatus');
+            
+            if (progressBar) {
+                progressBar.style.width = percent + '%';
+            }
+            if (progressStatus && message) {
+                progressStatus.textContent = message;
+            }
+        }
+
         function showError(message) {
-            errorDiv.textContent = '❌ Error: ' + message;
+            errorDiv.textContent = '\u274c Error: ' + message;
             errorDiv.classList.add('active');
         }
         
