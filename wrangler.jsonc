@@ -16,7 +16,17 @@
 	 */
 	"ai": {
 		"binding": "AI"
-	}
+	},
+	/**
+	 * Custom Domain Configuration
+	 * https://developers.cloudflare.com/workers/wrangler/configuration/#custom-domains
+	 */
+	"routes": [
+		{
+			"pattern": "warp-analyzer.dtg-lab.net",
+			"custom_domain": true
+		}
+	]
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

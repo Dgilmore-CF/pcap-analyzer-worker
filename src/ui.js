@@ -441,6 +441,167 @@ export const UI_HTML = `<!DOCTYPE html>
             font-weight: 500;
         }
         
+        .timeline-section {
+            margin-top: 30px;
+            margin-bottom: 30px;
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e5e5;
+        }
+        
+        .timeline-header {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f1f1f;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f38020;
+        }
+        
+        .timeline-container {
+            position: relative;
+            padding-left: 40px;
+        }
+        
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #f38020, #ff9933);
+        }
+        
+        .timeline-event {
+            position: relative;
+            margin-bottom: 25px;
+            padding-left: 15px;
+        }
+        
+        .timeline-event:last-child {
+            margin-bottom: 0;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            left: -33px;
+            top: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #f38020;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .timeline-icon {
+            font-size: 16px;
+        }
+        
+        .timeline-event.critical .timeline-marker {
+            border-color: #c41e3a;
+            background: #ffd4d4;
+        }
+        
+        .timeline-event.warning .timeline-marker {
+            border-color: #f39c12;
+            background: #fff4e5;
+        }
+        
+        .timeline-event.success .timeline-marker {
+            border-color: #27ae60;
+            background: #d4f4dd;
+        }
+        
+        .timeline-content {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #f38020;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .timeline-event.critical .timeline-content {
+            border-left-color: #c41e3a;
+        }
+        
+        .timeline-event.warning .timeline-content {
+            border-left-color: #f39c12;
+        }
+        
+        .timeline-event.success .timeline-content {
+            border-left-color: #27ae60;
+        }
+        
+        .timeline-timestamp {
+            font-size: 12px;
+            color: #666;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        
+        .timeline-event-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1f1f1f;
+            margin-bottom: 8px;
+        }
+        
+        .timeline-details {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .timeline-log-ref {
+            margin-top: 12px;
+        }
+        
+        .timeline-log-ref details {
+            background: #f9f9f9;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            padding: 8px 12px;
+        }
+        
+        .timeline-log-ref summary {
+            cursor: pointer;
+            font-size: 13px;
+            color: #f38020;
+            font-weight: 500;
+            user-select: none;
+        }
+        
+        .timeline-log-ref summary:hover {
+            color: #d66e1a;
+        }
+        
+        .log-ref-content {
+            margin-top: 8px;
+            padding: 10px;
+            background: #1f1f1f;
+            color: #f8f8f2;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+        
+        .timeline-source {
+            font-size: 12px;
+            color: #888;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
         .log-evidence {
             margin-top: 15px;
         }
@@ -843,6 +1004,64 @@ console.log(result);</pre>
                     'Files Analyzed: ' + (data.filesAnalyzed || 0) + ' | ' +
                     'Model: ' + (data.modelUsed || 'Unknown') +
                 '</p>';
+
+            // Display timeline if available
+            const timeline = analysis.timeline || [];
+            if (timeline.length > 0) {
+                html += '<div class="timeline-section">' +
+                    '<div class="timeline-header">📅 Event Timeline (' + timeline.length + ' events)</div>' +
+                    '<div class="timeline-container">';
+                
+                timeline.forEach((event, index) => {
+                    const severity = event.severity || 'Info';
+                    const eventType = event.event_type || 'Info';
+                    const timestamp = event.timestamp || 'Unknown time';
+                    const eventDesc = event.event || 'Event';
+                    const details = event.details || '';
+                    const sourceFile = event.source_file || '';
+                    const logRef = event.log_reference;
+                    
+                    // Choose icon based on event type
+                    let icon = 'ℹ️';
+                    if (eventType === 'Connection') icon = '🔌';
+                    else if (eventType === 'Configuration') icon = '⚙️';
+                    else if (eventType === 'Error') icon = '❌';
+                    else if (eventType === 'State') icon = '🔄';
+                    else if (eventType === 'Network') icon = '🌐';
+                    
+                    // Severity styling
+                    let severityClass = severity.toLowerCase();
+                    if (severity === 'Success') severityClass = 'success';
+                    
+                    html += '<div class="timeline-event ' + severityClass + '">' +
+                        '<div class="timeline-marker">' +
+                            '<span class="timeline-icon">' + icon + '</span>' +
+                        '</div>' +
+                        '<div class="timeline-content">' +
+                            '<div class="timeline-timestamp">' + escapeHtml(timestamp) + '</div>' +
+                            '<div class="timeline-event-title">' + escapeHtml(eventDesc) + '</div>';
+                    
+                    if (details) {
+                        html += '<div class="timeline-details">' + escapeHtml(details) + '</div>';
+                    }
+                    
+                    // Show log reference if available
+                    if (logRef) {
+                        html += '<div class="timeline-log-ref">' +
+                            '<details>' +
+                                '<summary>📄 ' + escapeHtml(logRef.filename) + ' (line ' + logRef.lineNumber + ')</summary>' +
+                                '<div class="log-ref-content">' + escapeHtml(logRef.content) + '</div>' +
+                            '</details>' +
+                        '</div>';
+                    } else if (sourceFile) {
+                        html += '<div class="timeline-source">Source: ' + escapeHtml(sourceFile) + '</div>';
+                    }
+                    
+                    html += '</div></div>';
+                });
+                
+                html += '</div></div>';
+            }
 
             if (issues.length > 0) {
                 html += '<div style="margin-top: 20px;"><strong>Issues Detected:</strong></div>';
