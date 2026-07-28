@@ -1,5 +1,19 @@
 # WARP Diagnostics & PCAP Analyzer
 
+> ## ⚠️ Deprecated — Replaced by v2
+>
+> **This project has been superseded by [warp-pcap-analyzer](https://github.com/Dgilmore-CF/warp-pcap-analyzer) (v2)** and is no longer actively maintained.
+>
+> The v2 application is a functional superset of this one and adds:
+> - **Full PCAP/PCAPNG binary decoding** (L2–L7) — this version only extracts metadata and limited packet summaries
+> - **Wireshark-style three-pane UI** with display filters, protocol tree, and hex dump
+> - **Session persistence** via Workers KV (paginated packet storage, 7-day retention)
+> - **Cloudflare Access SSO** with JWT verification
+> - **Multi-format export** (JSON, CSV, HAR, HTML)
+> - **Full REST API** for sessions, packets, flows, stats, and AI results
+>
+> Please use **[warp-pcap-analyzer](https://github.com/Dgilmore-CF/warp-pcap-analyzer)** for all new deployments. This repository is retained for historical reference only.
+
 AI-powered analyzer for Cloudflare WARP diagnostic logs and packet captures using Cloudflare Workers AI with Meta's Llama 4 Scout 17B model.
 
 ---
